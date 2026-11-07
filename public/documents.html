@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8f5">
+  <title>Author · 叙述层</title>
+  <link rel="stylesheet" href="/documents.css">
+  <script type="module" src="/documents.js"></script>
+</head>
+<body>
+  <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="mark" viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6m-6 4h6"/></symbol>
+    <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="outline-icon" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h1m-1 6h1m-1 6h1"/></symbol>
+    <symbol id="structure-icon" viewBox="0 0 24 24"><path d="M5 5v13h5M5 6h5m3 0h6m-6 6h6m-6 6h6"/></symbol>
+    <symbol id="align-left" viewBox="0 0 24 24"><path d="M4 5h16M4 10h10M4 15h16M4 20h10"/></symbol>
+    <symbol id="align-center" viewBox="0 0 24 24"><path d="M4 5h16M7 10h10M4 15h16M7 20h10"/></symbol>
+    <symbol id="align-right" viewBox="0 0 24 24"><path d="M4 5h16M10 10h10M4 15h16M10 20h10"/></symbol>
+    <symbol id="align-justify" viewBox="0 0 24 24"><path d="M4 5h16M4 10h16M4 15h16M4 20h16"/></symbol>
+    <symbol id="link-icon" viewBox="0 0 24 24"><path d="m10 13 4-4m-5 7-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m0 10a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-1 1"/></symbol>
+    <symbol id="copy-icon" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="paste-icon" viewBox="0 0 24 24"><path d="M9 4H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><rect x="9" y="2" width="6" height="5" rx="1"/><path d="M8 12h8m-8 4h8"/></symbol>
+    <symbol id="settings-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m10 3-1 3-3 1-3-1-1 3 2 3-2 3 1 3 3-1 3 1 1 3h4l1-3 3-1 3 1 1-3-2-3 2-3-1-3-3 1-3-1-1-3z"/></symbol>
+  </svg>
+
+  <header class="header">
+    <a class="brand" href="/"><span><svg><use href="#mark"/></svg></span>Author</a>
+    <nav class="layers" aria-label="工作区">
+      <a href="/narrative" aria-current="page"><svg><use href="#file"/></svg>叙述层</a>
+      <a href="/canvas"><svg><use href="#grid"/></svg>画布</a>
+    </nav>
+    <div id="save-state" class="save-state" role="status" data-state="idle"><i></i><span id="save-text">正在加载</span></div>
+    <button id="retry" class="quiet" hidden>重试</button>
+    <button id="outline-toggle" class="quiet" hidden aria-expanded="true" aria-controls="outline-panel"><svg><use href="#outline-icon"/></svg><span>目录</span></button>
+  </header>
+
+  <div class="workspace" id="workspace">
+    <main class="main">
+      <section id="welcome" class="landing">
+        <div class="landing-content">
+          <span class="eyebrow">AUTHOR / NARRATIVE</span>
+          <div class="library-heading">
+            <h1>叙述层</h1>
+            <button id="new-document" class="new-document" disabled><svg><use href="#plus"/></svg>新建文档</button>
+          </div>
+          <p class="landing-intro">我的文档 <span id="document-count">0</span></p>
+          <div id="document-list" class="document-list"></div>
+        </div>
+      </section>
+
+      <section id="document" class="document" hidden aria-label="文档编辑区">
+        <div class="document-bar">
+          <svg class="document-path-icon" aria-hidden="true"><use href="#file"/></svg>
+          <nav id="document-path" class="document-path" aria-label="当前目录路径"></nav>
+          <button id="paragraph-tree-toggle" class="quiet paragraph-tree-toggle" type="button" aria-expanded="false" aria-controls="paragraph-tree-panel" aria-label="段落结构" title="切换段落结构" hidden><svg aria-hidden="true"><use href="#structure-icon"/></svg><span>段落</span></button>
+          <button id="document-settings" class="quiet" type="button" title="文档设置" aria-label="文档设置" aria-haspopup="dialog" aria-controls="document-style-settings"><svg><use href="#settings-icon"/></svg></button>
+        </div>
+        <div id="paper-scroll" class="paper-scroll">
+          <article class="paper">
+            <div class="paper-tag">总览</div>
+            <h1 id="section-title"></h1>
+            <div id="section-overview" class="section-overview"></div>
+          </article>
+        </div>
+        <section id="content-block" class="content-block" aria-label="目录内容块" hidden>
+          <div class="writing-layout">
+            <aside id="paragraph-tree-panel" class="paragraph-tree-panel" aria-label="段落结构">
+              <div class="paragraph-tree-header">
+                <svg class="paragraph-tree-icon" aria-hidden="true"><use href="#structure-icon"/></svg>
+                <h2>段落结构</h2>
+                <span id="paragraph-tree-count" class="paragraph-tree-count" hidden></span>
+              </div>
+              <div id="paragraph-drop-hint" class="paragraph-drop-hint" role="status"></div>
+              <nav id="paragraph-tree" aria-label="段落导航"></nav>
+            </aside>
+            <div class="editor-surface">
+              <div class="visual-scroll">
+                <div id="editor" class="editor" data-empty="true"></div>
+              </div>
+            </div>
+          </div>
+          <footer class="metadata"><span id="character-count">0 字</span><span aria-hidden="true">·</span><span id="updated-at"></span></footer>
+        </section>
+      </section>
+    </main>
+
+    <aside id="outline-panel" class="outline" hidden aria-label="文档目录">
+      <div class="outline-header"><svg><use href="#outline-icon"/></svg><h2>目录</h2><button id="add-root" class="quiet" type="button" aria-label="添加一级目录" title="添加一级目录"><svg><use href="#plus"/></svg></button></div>
+      <nav id="outline-list" aria-label="目录项导航"></nav>
+    </aside>
+  </div>
+  <div id="document-style-settings" class="style-popover menu-surface" popover="auto" role="dialog" aria-labelledby="document-style-title">
+    <form id="document-style-form">
+      <header class="style-popover-header">
+        <span class="style-popover-icon"><svg aria-hidden="true"><use href="#settings-icon"/></svg></span>
+        <div><h2 id="document-style-title">文档默认样式</h2><p>适用于所有目录正文</p></div>
+      </header>
+      <div class="style-options">
+        <div class="style-grid style-type-grid">
+          <label class="style-field">字号<select id="document-font-size"></select></label>
+          <label class="style-field">行高<select id="document-line-height"></select></label>
+          <label class="style-field">字重<select id="document-weight"><option value="normal">常规</option><option value="bold">加粗</option></select></label>
+        </div>
+        <div class="style-grid">
+          <div class="style-field"><span>文字颜色</span><span id="document-color"></span></div>
+          <div class="style-field"><span>背景色</span><span id="document-background"></span></div>
+        </div>
+        <fieldset class="style-align"><legend>默认对齐</legend><div id="document-align" class="align-options"></div></fieldset>
+        <fieldset class="style-padding"><legend>段落默认内边距</legend>
+          <div class="style-grid">
+            <label class="style-field">上下<span class="style-number"><input id="document-padding-block" type="number" min="0" required><span>px</span></span></label>
+            <label class="style-field">左右<span class="style-number"><input id="document-padding-inline" type="number" min="0" required><span>px</span></span></label>
+          </div>
+        </fieldset>
+        <fieldset><legend>段落默认外边距</legend>
+          <div class="style-grid">
+            <label class="style-field">上下<span class="style-number"><input id="document-margin-block" type="number" min="0" required><span>px</span></span></label>
+            <label class="style-field">左右<span class="style-number"><input id="document-margin-inline" type="number" min="0" required><span>px</span></span></label>
+          </div>
+        </fieldset>
+      </div>
+      <footer class="style-popover-footer">
+        <button type="button" id="document-style-reset" class="style-reset">恢复默认</button>
+        <button type="submit" class="style-apply">应用</button>
+      </footer>
+    </form>
+    <div class="style-secondary">
+      <button type="button" id="document-info"><svg aria-hidden="true"><use href="#file"/></svg>文档名称与编号</button>
+      <button type="button" id="section-info" hidden><svg aria-hidden="true"><use href="#outline-icon"/></svg>当前目录设置</button>
+    </div>
+  </div>
+  <div id="paragraph-settings" class="style-popover menu-surface" popover="auto" role="dialog" aria-labelledby="paragraph-style-title">
+    <form id="paragraph-settings-form">
+      <header class="style-popover-header">
+        <span class="style-popover-icon"><svg aria-hidden="true"><use href="#outline-icon"/></svg></span>
+        <div><h2 id="paragraph-style-title">段落样式</h2><p id="paragraph-settings-target"></p></div>
+      </header>
+      <div class="style-options">
+        <fieldset class="style-typography"><legend>文字</legend>
+          <div class="style-grid style-type-grid">
+            <label class="style-field">字号<select id="paragraph-font-size"></select></label>
+            <label class="style-field">行高<select id="paragraph-line-height"></select></label>
+            <label class="style-field">字重<select id="paragraph-weight"><option value="normal">常规</option><option value="bold">加粗</option></select></label>
+          </div>
+          <div class="style-grid">
+            <div class="style-field"><span>文字颜色</span><span id="paragraph-color"></span></div>
+            <div class="style-field"><span>背景色</span><span id="paragraph-background"></span></div>
+          </div>
+        </fieldset>
+        <fieldset class="style-align"><legend>对齐</legend><div id="paragraph-align" class="align-options"></div></fieldset>
+        <fieldset class="style-padding"><legend>内边距</legend>
+          <div class="style-grid">
+            <label class="style-field">上下<span class="style-number"><input id="paragraph-padding-block" type="number" min="0" required><span>px</span></span></label>
+            <label class="style-field">左右<span class="style-number"><input id="paragraph-padding-inline" type="number" min="0" required><span>px</span></span></label>
+          </div>
+        </fieldset>
+        <fieldset><legend>外边距</legend>
+          <div class="style-grid">
+            <label class="style-field">上下<span class="style-number"><input id="paragraph-margin-block" type="number" min="0" required><span>px</span></span></label>
+            <label class="style-field">左右<span class="style-number"><input id="paragraph-margin-inline" type="number" min="0" required><span>px</span></span></label>
+          </div>
+        </fieldset>
+        <fieldset><legend>边框</legend>
+          <div class="style-grid">
+            <label class="style-field">线型<select id="paragraph-border-style"><option value="none">无</option><option value="solid">实线</option><option value="dashed">虚线</option><option value="dotted">点线</option></select></label>
+            <label class="style-field">线宽<span class="style-number"><input id="paragraph-border-width" type="number" min="1" required><span>px</span></span></label>
+            <div class="style-field"><span>边框颜色</span><span id="paragraph-border-color"></span></div>
+          </div>
+        </fieldset>
+        <fieldset><legend>引用</legend>
+          <div class="style-grid">
+            <label class="style-check"><input id="paragraph-quote" type="checkbox">设为引用</label>
+            <div class="style-field"><span>引用颜色</span><span id="paragraph-quote-color"></span></div>
+          </div>
+        </fieldset>
+      </div>
+      <footer class="style-popover-footer">
+        <button type="button" id="paragraph-style-reset" class="style-reset">恢复默认</button>
+        <button type="submit" class="style-apply">应用</button>
+      </footer>
+    </form>
+  </div>
+  <div id="text-context-menu" class="text-context-menu" role="dialog" aria-label="文字编辑菜单" hidden>
+    <div class="context-toolbar menu-surface" role="group" aria-label="快捷样式">
+      <select id="context-heading" aria-label="正文或标题"></select>
+      <span class="rule"></span>
+      <button type="button" data-style="bold" aria-label="加粗" title="加粗"><b>B</b></button>
+      <button type="button" data-style="italic" aria-label="斜体" title="斜体"><i>I</i></button>
+      <button type="button" data-style="underline" aria-label="下划线" title="下划线"><u>U</u></button>
+      <span class="rule"></span>
+      <div class="context-select"><span>颜色</span><span id="context-color"></span></div>
+      <label class="context-select">字号
+        <select id="context-size" aria-label="字号"></select>
+      </label>
+      <button type="button" data-context="link" aria-label="设置链接" title="设置链接"><svg><use href="#link-icon"/></svg></button>
+    </div>
+    <div class="context-actions menu-surface" role="group" aria-label="文字操作">
+      <button type="button" data-context="copy"><svg><use href="#copy-icon"/></svg>复制 <kbd>Ctrl+C</kbd></button>
+      <button type="button" data-context="paste"><svg><use href="#paste-icon"/></svg>粘贴 <kbd>Ctrl+V</kbd></button>
+      <button type="button" data-context="link"><svg><use href="#link-icon"/></svg><span id="context-link-label">添加链接</span></button>
+      <button type="button" data-context="copy-link" hidden><svg><use href="#copy-icon"/></svg>复制链接</button>
+    </div>
+    <form id="context-link-form" class="context-link-form menu-surface" hidden>
+      <label for="context-link">链接地址</label>
+      <input id="context-link" type="text" placeholder="https://example.com" autocomplete="off" required>
+      <div><button type="button" data-context="remove-link" hidden>移除</button><button type="submit">应用链接</button></div>
+    </form>
+  </div>
+  <div id="clipboard-note" class="clipboard-note" role="status" hidden></div>
+  <dialog id="name-dialog">
+    <form id="name-form">
+      <h2 id="dialog-title"></h2>
+      <label for="item-name" id="name-label"></label>
+      <input id="item-name" type="text" required autocomplete="off">
+      <div id="numbering-field" hidden>
+        <label for="numbering">子级目录编号</label>
+        <select id="numbering">
+          <option value="decimal">1 / 2 / 3</option>
+          <option value="chinese">一 / 二 / 三</option>
+          <option value="bullet">· 圆点</option>
+        </select>
+      </div>
+      <div class="dialog-actions"><button id="cancel-dialog" class="quiet" type="button">取消</button><button class="new-document" id="dialog-submit" type="submit">保存</button></div>
+    </form>
+  </dialog>
+</body>
+</html>
